@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Checklist técnico — Lexmark MX432</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+    body{max-width:900px;margin:20px auto;padding:20px;background:#fff;color:#111}
+    header{display:flex;justify-content:space-between;align-items:center}
+    h1{font-size:1.2rem;margin:0}
+    .meta{font-size:0.9rem;color:#444}
+    form{margin-top:18px}
+    fieldset{border:1px solid #ddd;padding:12px;margin-bottom:12px;border-radius:8px}
+    legend{font-weight:700}
+    label{display:flex;align-items:flex-start;gap:10px;padding:8px 0}
+    input[type=checkbox]{transform:scale(1.2);margin-top:4px}
+    .actions{margin-top:14px;display:flex;gap:8px}
+    button{padding:8px 12px;border-radius:8px;border:1px solid #bbb;background:#f6f6f6;cursor:pointer}
+    button.primary{background:#0b6; color:#012}
+    .small{font-size:0.85rem;color:#555}
+    @media print{.no-print{display:none}body{margin:0;padding:6mm}} 
+    .notes{margin-top:10px;font-size:0.9rem;color:#333}
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Checklist técnico — Lexmark MX432</h1>
+      <div class="meta">Cliente: <strong><span id="cliente">________________</span></strong> · Ubicación: <strong><span id="ubicacion">________________</span></strong></div>
+    </div>
+    <div class="small">Técnico: <strong id="tecnico">________________</strong><br>Fecha: <strong id="fecha">________________</strong></div>
+  </header>
+
+  <form id="checklist">
+    <fieldset>
+      <legend>Conexión y configuración básica</legend>
+      <label><input type="checkbox" id="c_ip_reserva"> IP estática o reserva DHCP configurada</label>
+      <label><input type="checkbox" id="c_config_red"> Verificar link físico y puerto en switch</label>
+      <label><input type="checkbox" id="c_imprimir_pagina"> Imprimir página de configuración / red</label>
+      <label><input type="checkbox" id="c_fecha_hora"> Fecha y hora configuradas correctamente</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Seguridad y acceso</legend>
+      <label><input type="checkbox" id="s_cambiar_pass"> Contraseña administrativa cambiada</label>
+      <label><input type="checkbox" id="s_https"> HTTPS habilitado para EWS (si es posible)</label>
+      <label><input type="checkbox" id="s_serv_no_usados"> Servicios no usados deshabilitados (Telnet/FTP)</label>
+      <label><input type="checkbox" id="s_vlan"> Impresora en VLAN separada / reglas firewall aplicadas</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Monitoreo y registros</legend>
+      <label><input type="checkbox" id="m_snmp"> SNMPv3 configurado para monitoreo</label>
+      <label><input type="checkbox" id="m_syslog"> Envío de logs / syslog activado (si aplica)</label>
+      <label><input type="checkbox" id="m_contadores"> Contadores de páginas activados y verificados</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Firmware y drivers</legend>
+      <label><input type="checkbox" id="f_actualizar_firmware"> Firmware actualizado a última versión disponible</label>
+      <label><input type="checkbox" id="f_drivers"> Drivers/UPD instalados en equipos/servidor</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Operación y consumibles</legend>
+      <label><input type="checkbox" id="o_stock_toner"> Stock de consumibles crítico (toner, fusor) verificado</label>
+      <label><input type="checkbox" id="o_contrato"> Contrato de mantenimiento/documentación presente</label>
+      <label><input type="checkbox" id="o_respaldo"> Plan de respaldo / impresora alterna asignada</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Privacidad y manejo de documentos</legend>
+      <label><input type="checkbox" id="p_pull_print"> Pull printing / liberación segura configurada (si aplica)</label>
+      <label><input type="checkbox" id="p_borrado"> Procedimiento de borrado seguro para desincorporación documentado</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Soporte</legend>
+      <label><input type="checkbox" id="soporte_numero"> Datos de contacto de soporte y número de serie registrados</label>
+      <label><input type="checkbox" id="soporte_ultima_rev"> Observaciones / última revisión registrada</label>
+    </fieldset>
+
+    <div class="notes">
+      Observaciones:
+      <div contenteditable="true" style="border:1px dashed #ccc;padding:8px;border-radius:6px;min-height:50px"></div>
+    </div>
+
+    <div class="actions no-print">
+      <button type="button" onclick="marcarTodos(true)">Marcar todo</button>
+      <button type="button" onclick="marcarTodos(false)">Desmarcar todo</button>
+      <button type="button" onclick="guardarLocal()">Guardar local</button>
+      <button type="button" class="primary" onclick="window.print()">Imprimir</button>
+    </div>
+  </form>
+
+  <script>
+    // Rellenar fecha automáticamente
+    document.getElementById('fecha').textContent = new Date().toLocaleDateString();
+
+    function marcarTodos(val){
+      const cbs = document.querySelectorAll('#checklist input[type=checkbox]');
+      cbs.forEach(cb => cb.checked = val);
+    }
+
+    function guardarLocal(){
+      const data = {};
+      document.querySelectorAll('#checklist input, #checklist textarea').forEach(el=>{
+        if(el.type==='checkbox') data[el.id] = el.checked;
+        else data[el.id] = el.value;
+      });
+      localStorage.setItem('checklist_lexmark_mx432', JSON.stringify({meta:{cliente:document.getElementById('cliente').textContent, tecnico:document.getElementById('tecnico').textContent, fecha:document.getElementById('fecha').textContent}, data}));
+      alert('Checklist guardado en localStorage (navegador).');
+    }
+
+    // Cargar guardado si existe
+    window.addEventListener('load', ()=>{
+      const raw = localStorage.getItem('checklist_lexmark_mx432');
+      if(!raw) return;
+      try{
+        const obj = JSON.parse(raw);
+        if(obj.meta){
+          if(obj.meta.cliente) document.getElementById('cliente').textContent = obj.meta.cliente;
+          if(obj.meta.tecnico) document.getElementById('tecnico').textContent = obj.meta.tecnico;
+          if(obj.meta.fecha) document.getElementById('fecha').textContent = obj.meta.fecha;
+        }
+        if(obj.data){
+          for(const k in obj.data){
+            const el = document.getElementById(k);
+            if(!el) continue;
+            if(el.type==='checkbox') el.checked = obj.data[k];
+            else el.value = obj.data[k];
+          }
+        }
+      }catch(e){console.warn('No se pudo cargar checklist guardado');}
+    });
+  </script>
+</body>
+</html>
